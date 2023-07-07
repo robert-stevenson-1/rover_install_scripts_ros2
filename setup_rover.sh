@@ -287,6 +287,7 @@ if [ "$install_repo" = true ]; then
     echo ""
     print_italic "Building Rover Robotics ROS2 packages"
     cd ~/$WORKSPACE_NAME > /dev/null
+    source /opt/ros/$ROS_DISTRO/setup.sh > /dev/null
     colcon build
     if [ $? -ne 0 ]; then
         print_red "Failed to build Rover Robotics ROS2 packages"
