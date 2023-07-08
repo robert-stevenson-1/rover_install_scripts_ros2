@@ -18,7 +18,6 @@ BASEDIR=$CURRENT_DIR
 
 # Packages that the script will check/install
 packages=(
-    "testnonexistentasdsad" 
     "ros-$ROS_DISTRO-slam-toolbox"
     "ros-$ROS_DISTRO-navigation2"
     "ros-$ROS_DISTRO-nav2-bringup"
