@@ -1,5 +1,20 @@
 #!/bin/bash
+
+#########################################################################
+# Script Name	: Rover ROS2 Install Script                             #                                                                
+# Description	: Sets up ROS2 software for Rover Robots                #                                                                                                                                                      
+# Author       	: Jack Rivera                                           #   
+# Email         : jack@roverrobotics.com                                #          
+#########################################################################
+
+#########################################################################
+#                          VARIABLES FOR SETUP                          #
+#                          EDIT TO CHANGE REPO                          #
+#########################################################################
+
 WORKSPACE_NAME=rover_workspace
+
+# Defined Colors
 BOLDRED="\e[1;31m"
 ENDCOLOR="\e[0m"
 RED="\e[31m"
@@ -14,6 +29,10 @@ print_red() {
 print_green() {
     echo -e "$GREEN${1} $ENDCOLOR"
 }
+
+#########################################################################
+#                          UNINSTALL PROCESS                            #
+#########################################################################
 
 # Prompt the user to confirm uninstall
 while true; do
@@ -78,6 +97,18 @@ if [ "$confirm_uninstall" = true ]; then
             print_red "Unable to remove /etc/udev/rules.d/55-roverrobotics.rules"
         else
             print_green "Successfully removed /etc/udev/rules.d/55-roverrobotics.rules"
+        fi
+        sudo udevadm control --reload-rules > /dev/null
+        if [ $? -ne 0 ]; then
+            print_red "Failed to reload udev rules"
+        else
+            print_green "Successfully reloaded rules"
+        fi
+        sudo udevadm trigger > /dev/null
+        if [ $? -ne 0 ]; then
+            print_red "Failed to trigger udevadm"
+        else
+            print_green "Triggered udev rules. This works most of the time but you may need to restart."
         fi
     fi
     grep -F "source ~/$WORKSPACE_NAME/install/setup.bash" ~/.bashrc &&

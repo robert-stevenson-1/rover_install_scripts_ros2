@@ -1,19 +1,43 @@
 #!/bin/bash
+#########################################################################
+# Script Name	: Rover ROS2 Install Script                             #                                                                
+# Description	: Sets up ROS2 software for Rover Robots                #                                                                                                                                                      
+# Author       	: Jack Rivera                                           #   
+# Email         : jack@roverrobotics.com                                #          
+#########################################################################
+
+#########################################################################
+#                          VARIABLES FOR SETUP                          #
+#                     EDIT TO CHANGE REPO/ROS DISTRO                    #
+#########################################################################
 ROS_DISTRO=humble
 ROVER_REPO=https://github.com/RoverRobotics/ros2_roverrobotics_development.git
 WORKSPACE_NAME=rover_workspace
 CURRENT_DIR=${PWD}
 BASEDIR=$CURRENT_DIR
 
+# Packages that the script will check/install
+packages=(
+    "testnonexistentasdsad" 
+    "ros-$ROS_DISTRO-slam-toolbox"
+    "ros-$ROS_DISTRO-navigation2"
+    "ros-$ROS_DISTRO-nav2-bringup"
+    "ros-$ROS_DISTRO-joint-state-publisher"
+    "ros-$ROS_DISTRO-xacro"
+    "ros-$ROS_DISTRO-joy-linux"
+    "git"
+    "net-tools"
+)
+
+#########################################################################
+#                          HELPER FUNCTIONS                             #
+#########################################################################
 RED="\e[31m"
 GREEN="\e[32m"
 BOLD="\e[1m"
-ITALIC="\e[3m"
 ITALICBLUE="\e[3;94m"
 BOLDBLUE="\e[1;94m"
 ENDCOLOR="\e[0m"
-
-# Helper functions
 
 print_red() {
     echo -e "$RED${1} $ENDCOLOR"
@@ -49,7 +73,6 @@ print_install_settings() {
     echo ""
 }
 
-
 # Define the install service functions
 create_startup_script() {
     local robot_type=$1
@@ -66,12 +89,12 @@ EOF2
 
 create_startup_service() {
     cat << EOF3 | sudo tee /etc/systemd/system/roverrobotics.service
-    [Service]
-    Type=simple
-    User=$USER
-    ExecStart=/bin/bash /usr/sbin/roverrobotics
-    [Install]
-    WantedBy=multi-user.target
+[Service]
+Type=simple
+User=$USER
+ExecStart=/bin/bash /usr/sbin/roverrobotics
+[Install]
+WantedBy=multi-user.target
 EOF3
 
     sudo systemctl enable roverrobotics.service
@@ -102,65 +125,25 @@ EOF5
 }
 
 
-# Define the install_ros_packages function
+try_install_package() {
+    local package=$1
+    sudo apt-get install -y $package > /dev/null
+    if [ $? -ne 0 ]; then
+        print_red "Error encountered while installing $package."
+        return 1
+    else
+        print_green "$package: Success"
+        return 0
+    fi
+}
+
 install_ros_packages() {
     local error_count=0
-    sudo apt-get install -y ros-$ROS_DISTRO-slam-toolbox > /dev/null
-    if [ $? -ne 0 ]; then
-        print_red "Error encountered while installing ros-$ROS_DISTRO-slam-toolbox."
-        error_count=$((error_count+1))
-    else
-        print_green "ros-$ROS_DISTRO-slam-toolbox: Success"
-    fi
-    sudo apt-get install -y ros-$ROS_DISTRO-navigation2 > /dev/null
-    if [ $? -ne 0 ]; then
-        print_red "Error encountered while installing ros-$ROS_DISTRO-navigation2."
-        error_count=$((error_count+1))
-    else
-        print_green "ros-$ROS_DISTRO-navigation2: Success"
-    fi
-    sudo apt-get install -y ros-$ROS_DISTRO-nav2-bringup > /dev/null
-    if [ $? -ne 0 ]; then
-        print_red "Error encountered while installing ros-$ROS_DISTRO-nav2-bringup."
-        error_count=$((error_count+1))
-    else
-        print_green "ros-$ROS_DISTRO-nav2-bringup: Success"
-    fi
-    sudo apt-get install -y ros-$ROS_DISTRO-joint-state-publisher > /dev/null
-    if [ $? -ne 0 ]; then
-        print_red "Error encountered while installing ros-$ROS_DISTRO-joint-state-publisher."
-        error_count=$((error_count+1))
-    else
-        print_green "ros-$ROS_DISTRO-joint-state-publisher: Success"
-    fi
-    sudo apt-get install -y ros-$ROS_DISTRO-xacro > /dev/null
-    if [ $? -ne 0 ]; then
-        print_red "Error encountered while installing ros-$ROS_DISTRO-xacro."
-        error_count=$((error_count+1))
-    else
-        print_green "ros-$ROS_DISTRO-xacro: Success"
-    fi
-    sudo apt-get install -y ros-$ROS_DISTRO-joy-linux > /dev/null
-    if [ $? -ne 0 ]; then
-        print_red "Error encountered while installing ros-$ROS_DISTRO-joy-linux."
-        error_count=$((error_count+1))
-    else
-        print_green "ros-$ROS_DISTRO-joy-linux: Success"
-    fi
-    sudo apt-get install -y git > /dev/null
-    if [ $? -ne 0 ]; then
-        print_red "Error encountered while installing git."
-        error_count=$((error_count+1))
-    else
-        print_green "git: Success"
-    fi
-    sudo apt-get install -y net-tools > /dev/null
-    if [ $? -ne 0 ]; then
-        print_red "Error encountered while installing net-tools."
-        error_count=$((error_count+1))
-    else
-        print_green "net-tools: Success"
-    fi
+    for pkg in "${packages[@]}"; do
+        try_install_package "$pkg"
+        error_count=$((error_count + $?))
+    done
+
     if [ $error_count -gt 0 ]; then
         echo ""
         print_red "Finished checking/installing packages with $error_count error(s)."
@@ -174,6 +157,10 @@ install_ros_packages() {
 }
 
 clear
+
+#########################################################################
+#                          INSTALL PROCESS                              #
+#########################################################################
 
 # Prompt the user for device type
 while true; do
@@ -266,8 +253,8 @@ fi
 # Prompt the user to decide about installing CAN driver
 if [ "$install_can" = true ]; then
     while true; do
-        printf "Is the Rover $device_type connected via CAN-TO-USB? [y/n]: "
-        read rover_can
+        printf "Is the Rover %s connected via CAN-TO-USB? [y/n]: " "$device_type"
+        read -r rover_can
         case $rover_can in
             [Yy]* ) install_can=true; install_total=$((install_total+1)); break;;
             [Nn]* ) install_can=false; break;;
