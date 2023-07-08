@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 ROS_DISTRO=humble
 ROVER_REPO=https://github.com/RoverRobotics/ros2_roverrobotics_development.git
-WORKSPACE_NAME=rover_workspace
+WORKSPACE_NAME=test_workspace
 CURRENT_DIR=${PWD}
 BASEDIR=$CURRENT_DIR
 
@@ -16,19 +16,19 @@ ENDCOLOR="\e[0m"
 # Helper functions
 
 print_red() {
-    echo "$RED${1} $ENDCOLOR"
+    echo -e "$RED${1} $ENDCOLOR"
 }
 print_green() {
-    echo "$GREEN${1} $ENDCOLOR"
+    echo -e "$GREEN${1} $ENDCOLOR"
 }
 print_bold() {
-    echo "$BOLD${1} $ENDCOLOR"
+    echo -e "$BOLD${1} $ENDCOLOR"
 }
 print_italic() {
-    echo "$ITALICBLUE${1} $ENDCOLOR"
+    echo -e "$ITALICBLUE${1} $ENDCOLOR"
 }
 print_boldblue(){
-    echo "$BOLDBLUE${1} $ENDCOLOR"
+    echo -e "$BOLDBLUE${1} $ENDCOLOR"
 }
 print_next_install() {
     install_number=$((install_number+1))
@@ -54,11 +54,11 @@ print_install_settings() {
 create_startup_script() {
     local robot_type=$1
     cat << EOF2 | sudo tee /usr/sbin/roverrobotics
-    #!/bin/bash
-    source ~/rover_workspace/install/setup.sh
-    ros2 launch roverrobotics_driver ${robot_type}_teleop.launch.py
-    PID=$!
-    wait "$PID"
+#!/bin/bash
+source ~/rover_workspace/install/setup.sh
+ros2 launch roverrobotics_driver ${robot_type}_teleop.launch.py
+PID=\$!
+wait "\$PID"
 EOF2
 
     sudo chmod +x /usr/sbin/roverrobotics
@@ -69,7 +69,7 @@ create_startup_service() {
     [Service]
     Type=simple
     User=$USER
-    ExecStart=/usr/sbin/roverrobotics
+    ExecStart=/bin/bash /usr/sbin/roverrobotics
     [Install]
     WantedBy=multi-user.target
 EOF3
@@ -78,22 +78,22 @@ EOF3
 }
 
 create_can_service() {      
-    cat << EOF7 | sudo tee /enablecan.sh
-    #!/bin/bash
-    sudo ip link set can0 type can bitrate 500000 sjw 127 dbitrate 2000000 dsjw 15 berr-reporting on fd on
-    sudo ip link set up can0
-EOF7
+    cat << EOF4 | sudo tee /usr/sbin/enablecan
+#!/bin/bash
+sudo ip link set can0 type can bitrate 500000 sjw 127 dbitrate 2000000 dsjw 15 berr-reporting on fd on
+sudo ip link set up can0
+EOF4
 
-    sudo chmod +x /enablecan.sh
+    sudo chmod +x /usr/sbin/enablecan
 
-    cat << EOF6 | sudo tee /etc/systemd/system/can.service
-    [Service]
-    Type=simple
-    User=root
-    ExecStart=/enablecan.sh
-    [Install]
-    WantedBy=multi-user.target
-EOF6
+    cat << EOF5 | sudo tee /etc/systemd/system/can.service
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/sbin/enablecan
+[Install]
+WantedBy=multi-user.target
+EOF5
 
     sudo systemctl enable can.service
 
@@ -109,47 +109,65 @@ install_ros_packages() {
     if [ $? -ne 0 ]; then
         print_red "Error encountered while installing ros-$ROS_DISTRO-slam-toolbox."
         error_count=$((error_count+1))
+    else
+        print_green "ros-$ROS_DISTRO-slam-toolbox: Success"
     fi
     sudo apt-get install -y ros-$ROS_DISTRO-navigation2 > /dev/null
     if [ $? -ne 0 ]; then
         print_red "Error encountered while installing ros-$ROS_DISTRO-navigation2."
         error_count=$((error_count+1))
+    else
+        print_green "ros-$ROS_DISTRO-navigation2: Success"
     fi
     sudo apt-get install -y ros-$ROS_DISTRO-nav2-bringup > /dev/null
     if [ $? -ne 0 ]; then
         print_red "Error encountered while installing ros-$ROS_DISTRO-nav2-bringup."
         error_count=$((error_count+1))
+    else
+        print_green "ros-$ROS_DISTRO-nav2-bringup: Success"
     fi
     sudo apt-get install -y ros-$ROS_DISTRO-joint-state-publisher > /dev/null
     if [ $? -ne 0 ]; then
         print_red "Error encountered while installing ros-$ROS_DISTRO-joint-state-publisher."
         error_count=$((error_count+1))
+    else
+        print_green "ros-$ROS_DISTRO-joint-state-publisher: Success"
     fi
     sudo apt-get install -y ros-$ROS_DISTRO-xacro > /dev/null
     if [ $? -ne 0 ]; then
         print_red "Error encountered while installing ros-$ROS_DISTRO-xacro."
         error_count=$((error_count+1))
+    else
+        print_green "ros-$ROS_DISTRO-xacro: Success"
     fi
     sudo apt-get install -y ros-$ROS_DISTRO-joy-linux > /dev/null
     if [ $? -ne 0 ]; then
         print_red "Error encountered while installing ros-$ROS_DISTRO-joy-linux."
         error_count=$((error_count+1))
+    else
+        print_green "ros-$ROS_DISTRO-joy-linux: Success"
     fi
     sudo apt-get install -y git > /dev/null
     if [ $? -ne 0 ]; then
         print_red "Error encountered while installing git."
         error_count=$((error_count+1))
+    else
+        print_green "git: Success"
     fi
     sudo apt-get install -y net-tools > /dev/null
     if [ $? -ne 0 ]; then
         print_red "Error encountered while installing net-tools."
         error_count=$((error_count+1))
+    else
+        print_green "net-tools: Success"
     fi
     if [ $error_count -gt 0 ]; then
+        echo ""
         print_red "Finished checking/installing packages with $error_count error(s)."
         print_red "Check that ROS2 is installed correctly and repository sources are correct."
         return 1
     else
+        echo ""
         print_green "Finished checking/installing packages successfully."
         return 0
     fi
@@ -224,7 +242,7 @@ while true; do
 done
 
 install_number=0
-install_total=1
+install_total=2
 install_can=false
 
 if [ "$install_repo" = true ]; then
@@ -293,12 +311,16 @@ if [ "$install_repo" = true ]; then
         print_red "Failed to build Rover Robotics ROS2 packages"
     else
         print_green "Successfully built packages."
-    fi
+        grep -F "source ~/$WORKSPACE_NAME/install/setup.bash" ~/.bashrc ||
+        echo "source ~/$WORKSPACE_NAME/install/setup.bash" >> ~/.bashrc
 
+        source ~/$WORKSPACE_NAME/install/setup.bash > /dev/null
+    fi
     echo ""
 fi
 
 if [ "$install_can" = true ]; then
+    print_next_install "Installing the CAN services"
     print_italic "Setting up CAN for Rover $device_type"
     create_can_service > /dev/null
 
@@ -308,8 +330,8 @@ if [ "$install_can" = true ]; then
         print_green "Successfully created can.service"
     fi
 
-    if [ ! -f /enablecan.sh ]; then
-        print_red "Failed to create enablecan.sh @ /enablecan.sh"
+    if [ ! -f /usr/sbin/enablecan ]; then
+        print_red "Failed to create enablecan @ /usr/sbin/enablecan"
     else
         print_green "Successfully created enablecan.sh"
     fi
@@ -376,3 +398,27 @@ if [ "$install_udev" = true ]; then
 
     echo ""
 fi
+
+
+# Restarts the services if they exist
+if [ -f /etc/systemd/system/roverrobotics.service ] || [ -f /etc/systemd/system/can.service ]; then
+    print_next_install "Restarting services for convenience"
+    echo ""
+    if [ -f /etc/systemd/system/can.service ]; then
+        sudo systemctl restart can.service
+        if [ $? -ne 0 ]; then
+            print_red "Failed to restart can.service"
+        else
+            print_green "Restarted can.service"
+        fi
+    fi
+    if [ -f /etc/systemd/system/roverrobotics.service ]; then
+        sudo systemctl restart roverrobotics.service
+        if [ $? -ne 0 ]; then
+            print_red "Failed to restart roverrobotics.service"
+        else
+            print_green "Restarted roverrobotics.service"
+        fi
+    fi
+    echo ""
+fi  
