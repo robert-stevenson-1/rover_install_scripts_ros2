@@ -1,5 +1,5 @@
 #!/bin/bash
-WORKSPACE_NAME=test_workspace
+WORKSPACE_NAME=rover_workspace
 BOLDRED="\e[1;31m"
 ENDCOLOR="\e[0m"
 RED="\e[31m"

@@ -1,7 +1,7 @@
 #!/bin/bash
 ROS_DISTRO=humble
 ROVER_REPO=https://github.com/RoverRobotics/ros2_roverrobotics_development.git
-WORKSPACE_NAME=test_workspace
+WORKSPACE_NAME=rover_workspace
 CURRENT_DIR=${PWD}
 BASEDIR=$CURRENT_DIR
 
