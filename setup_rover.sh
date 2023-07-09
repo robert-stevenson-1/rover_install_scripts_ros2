@@ -24,6 +24,8 @@ packages=(
     "ros-$ROS_DISTRO-joint-state-publisher"
     "ros-$ROS_DISTRO-xacro"
     "ros-$ROS_DISTRO-joy-linux"
+    "python3-serial"
+    "python3-smbus"
     "git"
     "net-tools"
 )
