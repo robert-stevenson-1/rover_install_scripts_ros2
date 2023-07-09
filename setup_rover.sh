@@ -21,6 +21,8 @@ packages=(
     "ros-$ROS_DISTRO-slam-toolbox"
     "ros-$ROS_DISTRO-navigation2"
     "ros-$ROS_DISTRO-nav2-bringup"
+    "ros-$ROS_DISTRO-robot-localization"
+    "ros-$ROS_DISTRO-robot-state-publisher"
     "ros-$ROS_DISTRO-joint-state-publisher"
     "ros-$ROS_DISTRO-xacro"
     "ros-$ROS_DISTRO-joy-linux"
