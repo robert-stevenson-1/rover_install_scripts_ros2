@@ -11,7 +11,7 @@
 #                     EDIT TO CHANGE REPO/ROS DISTRO                    #
 #########################################################################
 ROS_DISTRO=humble
-ROVER_REPO=https://github.com/RoverRobotics/ros2_roverrobotics_development.git
+ROVER_REPO=https://github.com/RoverRobotics/roverrobotics_ros2.git
 WORKSPACE_NAME=rover_workspace
 CURRENT_DIR=${PWD}
 BASEDIR=$CURRENT_DIR
