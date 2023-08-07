@@ -1,10 +1,8 @@
 # rover_install_scripts_ros2
-ROS2 Install Scripts for Rover Robots
-
-Clone this repo and then follow the instructions in the setup script.
+Install Scripts for Rover Robots
+**REQUIRES UBUNTU 22.04 & ROS2 HUMBLE**
 
 ```
-
 git clone https://github.com/RoverRobotics/rover_install_scripts_ros2
 
 cd rover_install_scripts_ros2
@@ -21,3 +19,15 @@ This install script will ask you which robot you wish to install and additionall
   
 
 Once the install is finished you are good to go!
+
+# Install ROS2
+Ubuntu 22.04 and ROS2 Humble must be installed before installing any Rover Robotics scripts. You can do this manually or you can use the included ROS2 setup file included with this repo.
+
+```
+cd rover_install_scripts_ros2
+
+sudo chmod 777 ros2-humble-main.sh
+
+./ros2-humble-main.sh
+
+```
