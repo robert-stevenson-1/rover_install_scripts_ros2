@@ -106,7 +106,7 @@ EOF3
 create_can_service() {      
     cat << EOF4 | sudo tee /usr/sbin/enablecan
 #!/bin/bash
-sudo ip link set can0 type can bitrate 500000 sjw 127 dbitrate 2000000 dsjw 15 berr-reporting on fd on
+sudo ip link set can0 type can bitrate 500000 sjw 2 dbitrate 2000000 dsjw 15 berr-reporting on fd on
 sudo ip link set up can0
 EOF4
 
@@ -123,7 +123,7 @@ EOF5
 
     sudo systemctl enable can.service
 
-    sudo ip link set can0 type can bitrate 500000 sjw 127 dbitrate 2000000 dsjw 15 berr-reporting on fd on
+    sudo ip link set can0 type can bitrate 500000 sjw 2 dbitrate 2000000 dsjw 15 berr-reporting on fd on
     sudo ip link set up can0
 }
 
