@@ -167,7 +167,7 @@ clear
 
 # Prompt the user for device type
 while true; do
-    printf "Enter the robot type [(1) small_wheel_miti, (2) miti, (3) mini, (4) zero, (5) pro]: "
+    printf "Enter the robot type [(1) small_wheel_miti, (2) miti, (3) mini, (4) zero, (5) pro, (6) max]: "
     read device_type
 
     case "$device_type" in
@@ -186,11 +186,14 @@ while true; do
         "5")
             device_type="pro"
             ;;
+        "6")
+            device_type="max"
+            ;;
     esac
 
 
     # Check if the entered device type is valid
-    if [ "$device_type" != "small_wheel_miti" ] && [ "$device_type" != "miti" ] && [ "$device_type" != "mini" ] && [ "$device_type" != "zero" ] && [ "$device_type" != "pro" ]; then
+    if [ "$device_type" != "small_wheel_miti" ] && [ "$device_type" != "miti" ] && [ "$device_type" != "mini" ] && [ "$device_type" != "zero" ] && [ "$device_type" != "pro" ] && [ "$device_type" != "max" ]; then
         print_red "Invalid robot type."
     else
         break
@@ -247,7 +250,7 @@ if [ "$install_udev" = true ]; then
     install_total=$((install_total+1))
 fi
 
-if [ "$device_type" = "small_wheel_miti" ] || [ "$device_type" = "miti" ] || [ "$device_type" = "mini" ]; then
+if [ "$device_type" = "small_wheel_miti" ] || [ "$device_type" = "miti" ] || [ "$device_type" = "mini" ] || [ "$device_type" = "max" ]; then
     if [ ! -f /etc/systemd/system/can.service ]; then
         install_can=true
     fi
