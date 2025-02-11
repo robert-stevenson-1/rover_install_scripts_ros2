@@ -12,6 +12,8 @@
 #########################################################################
 ROS_DISTRO=humble
 ROVER_REPO=https://github.com/RoverRobotics/roverrobotics_ros2.git
+IMU_REPO=https://github.com/flynneva/bno055.git
+RPLIDAR_REPO=https://github.com/Slamtec/rplidar_ros.git
 WORKSPACE_NAME=rover_workspace
 CURRENT_DIR=${PWD}
 BASEDIR=$CURRENT_DIR
@@ -71,6 +73,9 @@ print_install_settings() {
     print_boldblue "Repo:         $install_repo          "
     print_boldblue "Service:      $install_service       "
     print_boldblue "Udev:         $install_udev          "
+    print_boldblue "CPU:          $cpu_type              "
+    print_boldblue "BNO055 IMU:   $install_imu           "
+    print_boldblue "RPLidar S2:   $install_s2              "
     print_boldblue "                                     "
     print_bold "====================================="
     echo ""
@@ -234,6 +239,39 @@ while true; do
     esac
 done
 
+# Prompt the user to decide about the type of computer
+while true; do
+    printf "Are you using x86-based NVIDIA computer? [y/n]: "
+    read cpu_type
+    case $cpu_type in
+        [Yy]* ) cpu_type=true; break;;
+        [Nn]* ) cpu_type=false; break;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
+
+# Prompt the user to decide about installing the bno055 imu
+while true; do
+    printf "Would you like to install the BNO055 IMU repository? [y/n]: "
+    read install_imu
+    case $install_imu in
+        [Yy]* ) install_imu=true; break;;
+        [Nn]* ) install_imu=false; break;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
+
+# Prompt the user to decide about installing the rplidars2
+while true; do
+    printf "Would you like to install the RPLIDAR S2 repository? [y/n]: "
+    read install_s2
+    case $install_s2 in
+        [Yy]* ) install_s2=true; break;;
+        [Nn]* ) install_s2=false; break;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
+
 install_number=0
 install_total=2
 install_can=false
@@ -247,6 +285,14 @@ if [ "$install_service" = true ]; then
 fi
 
 if [ "$install_udev" = true ]; then
+    install_total=$((install_total+1))
+fi
+
+if [ "$install_imu" = true ]; then
+    install_total=$((install_total+1))
+fi
+
+if [ "$install_s2" = true ]; then
     install_total=$((install_total+1))
 fi
 
@@ -293,6 +339,61 @@ if [ "$install_repo" = true ]; then
         print_red "Failed to clone Rover Robotics ROS2 packages"
     else
         print_green "Successfully cloned packages."
+    fi
+
+    echo ""
+
+    if [ "$cpu_type" = true ]; then
+        print_italic "You selected NVIDIA."
+        echo ""
+        cd ~/$WORKSPACE_NAME/src/roverrobotics_ros2/roverrobotics_driver/config > /dev/null
+
+        # Delete "controller_config.yaml" if it exists
+        if [ -f "controller_config.yaml" ]; then
+            rm "controller_config.yaml"
+            echo "Deleted controller_config.yaml"
+        fi
+
+        # Rename "controller_config_jp6.yaml" to "controller_config.yaml" if it exists
+        if [ -f "controller_config_jp6.yaml" ]; then
+            mv "controller_config_jp6.yaml" "controller_config.yaml"
+            echo "Renamed controller_config_jp6.yaml to controller_config.yaml"
+        else
+            echo "controller_config_jp6 not found."
+        fi
+
+    else
+        print_italic "You selected Intel."
+    fi
+    
+    if [ "$install_imu" = true ]; then
+        echo ""
+        print_next_install "Installing IMU Repository."
+        cd ~/$WORKSPACE_NAME/src > /dev/null
+        echo ""
+        print_italic "Cloning BNO055 packages into /home/${WORKSPACE_NAME}/src"
+        echo ""
+        git clone $IMU_REPO > /dev/null
+        if [ $? -ne 0 ]; then
+            print_red "Failed to clone BNO055 packages"
+        else
+            print_green "Successfully cloned BNO055 packages."
+        fi
+    fi
+
+    if [ "$install_s2" = true ]; then
+        echo ""
+        print_next_install "Installing RPLIDAR_S2 Repository."
+        cd ~/$WORKSPACE_NAME/src > /dev/null
+        echo ""
+        print_italic "Cloning RPLIDAR_S2 packages into /home/${WORKSPACE_NAME}/src"
+        echo ""
+        git clone $RPLIDAR_REPO -b ros2> /dev/null
+        if [ $? -ne 0 ]; then
+            print_red "Failed to clone RPLIDAR_S2 packages"
+        else
+            print_green "Successfully cloned RPLIDAR_S2 packages."
+        fi
     fi
 
     echo ""
