@@ -473,7 +473,7 @@ if [ "$install_udev" = true ]; then
 
         echo ""
         print_italic "Reloading udev rules"
-        sudo udevadm control --reload-rules > /dev/null
+        sudo /lib/systemd/systemd-udevd --daemon && udevadm control --reload-rules > /dev/null
         if [ $? -ne 0 ]; then
             print_red "Failed to reload udev rules"
         else
